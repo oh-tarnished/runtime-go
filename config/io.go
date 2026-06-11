@@ -95,7 +95,7 @@ func newIO(path string) (*IO, error) {
 		return nil, err
 	}
 
-	if err := os.MkdirAll(absPath, 0755); err != nil {
+	if err := os.MkdirAll(absPath, 0750); err != nil {
 		shared.Pulse.Logger.Errorf("NewIO mkdir error: %v", err)
 		return nil, err
 	}
@@ -171,7 +171,7 @@ func (l *IO) WriteFile(path string, data []byte) error {
 		return err
 	}
 
-	if err := os.MkdirAll(filepath.Dir(resolvedPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(resolvedPath), 0750); err != nil {
 		shared.Pulse.Logger.Errorf("WriteFile mkdir error: %v", err)
 		return err
 	}
@@ -182,7 +182,7 @@ func (l *IO) WriteFile(path string, data []byte) error {
 		l.ioMutex.Lock()
 		defer l.ioMutex.Unlock()
 
-		err := os.WriteFile(resolvedPath, data, 0644)
+		err := os.WriteFile(resolvedPath, data, 0600)
 		if err != nil {
 			shared.Pulse.Logger.Errorf("WriteFile error writing file: %v", err)
 		} else {
@@ -313,7 +313,7 @@ func (l *IO) CreateDirectory(path string) error {
 		l.ioMutex.Lock()
 		defer l.ioMutex.Unlock()
 
-		err := os.MkdirAll(resolvedPath, 0755)
+		err := os.MkdirAll(resolvedPath, 0750)
 		if err != nil {
 			shared.Pulse.Logger.Errorf("CreateDirectory error: %v", err)
 		} else {

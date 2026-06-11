@@ -27,7 +27,7 @@ type WebSocketClient struct {
 	dialer            *websocket.Dialer  // Used for Connect/Reconnect
 	pathIndex         int                // Index into URL.Paths for buildFullURL
 	mu                sync.RWMutex       // Protects conn and options
-	ctx               context.Context    // Cancelled on Close to stop ping goroutine
+	ctx               context.Context    // Canceled on Close to stop ping goroutine
 	cancel            context.CancelFunc // Cancel for ctx
 	autoReconnect     bool               // When true, Listen attempts Reconnect on read error
 	reconnectDelay    time.Duration      // Delay before reconnecting (default 5s)
@@ -137,7 +137,7 @@ func (ws *WebSocketClient) Reconnect() error {
 	shared.Pulse.Logger.Debug("Reconnecting to WebSocket server...")
 
 	if ws.conn != nil {
-		ws.Close()
+		_ = ws.Close()
 	}
 
 	return ws.Connect(ws.ConnectionOptions)
@@ -157,7 +157,7 @@ func (ws *WebSocketClient) SetAutoReconnect(enabled bool, delay time.Duration) {
 }
 
 // startPingPong starts a goroutine that sends a ping every 30 seconds and sets
-// the read deadline on pong. The goroutine exits when ws.ctx is cancelled (e.g. on Close).
+// the read deadline on pong. The goroutine exits when ws.ctx is canceled (e.g. on Close).
 func (ws *WebSocketClient) startPingPong() {
 	ws.conn.SetPongHandler(func(string) error {
 		shared.Pulse.Logger.Debug("Received pong from server")
@@ -252,7 +252,7 @@ func (ws *WebSocketClient) RetrySend(messageType int, message []byte, maxRetries
 
 // Listen runs a loop that reads messages and calls handleMessage for each. It
 // returns a channel that receives a single error when the loop stops (context
-// cancelled, connection closed, or read error; if auto-reconnect is enabled and
+// canceled, connection closed, or read error; if auto-reconnect is enabled and
 // reconnection fails, that error is sent). The channel is closed after the error
 // is sent. Listen is typically run in a goroutine; cancel ctx or close the client
 // to stop it.
@@ -265,11 +265,11 @@ func (ws *WebSocketClient) Listen(ctx context.Context, handleMessage func(messag
 		for {
 			select {
 			case <-ctx.Done():
-				shared.Pulse.Logger.Debug("Listen context cancelled")
+				shared.Pulse.Logger.Debug("Listen context canceled")
 				errChan <- ctx.Err()
 				return
 			case <-ws.ctx.Done():
-				shared.Pulse.Logger.Debug("WebSocket context cancelled")
+				shared.Pulse.Logger.Debug("WebSocket context canceled")
 				errChan <- ws.ctx.Err()
 				return
 			default:

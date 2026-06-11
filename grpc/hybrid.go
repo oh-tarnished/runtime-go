@@ -160,16 +160,12 @@ func (s *HybridServer) Start() error {
 
 	if s.opts.ExperimentalHttp3 {
 		shared.Pulse.Logger.Debugf("Start: starting experimental HTTP/3 server")
-		if err := s.startHTTP3ExperimentalServer(); err != nil {
-			return fmt.Errorf("failed to start HTTP/3 server: %w", err)
-		}
+		s.startHTTP3ExperimentalServer()
 	}
 
 	if s.opts.EnableMCP {
 		shared.Pulse.Logger.Debugf("Start: starting MCP server(s)")
-		if err := s.startMCPServer(); err != nil {
-			return fmt.Errorf("failed to start MCP server: %w", err)
-		}
+		s.startMCPServer()
 	} else {
 		shared.Pulse.Logger.Debugf("Start: MCP disabled (EnableMCP=false)")
 	}
@@ -190,7 +186,7 @@ func (s *HybridServer) Start() error {
 func (s *HybridServer) Close() error {
 	shared.Pulse.Logger.Debugf("Close: initiating graceful close")
 	go func() {
-		shared.Close()
+		_ = shared.Close()
 	}()
 	return s.Stop()
 }
@@ -214,7 +210,7 @@ func (s *HybridServer) Stop() error {
 	if s.mcpCancel != nil {
 		shared.Pulse.Logger.Info("Shutting down MCP server...")
 		s.mcpCancel()
-		shared.Pulse.Logger.Debugf("Stop: MCP context cancelled")
+		shared.Pulse.Logger.Debugf("Stop: MCP context canceled")
 	}
 	return nil
 }

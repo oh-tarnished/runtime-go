@@ -98,7 +98,9 @@ func (w *Watcher) Stop() {
 	shared.Pulse.Logger.Debugf("Stopping watcher for path '%s'", w.Path)
 	close(w.done)
 	if w.watcher != nil {
-		w.watcher.Close()
+		if err := w.watcher.Close(); err != nil {
+			shared.Pulse.Logger.Errorf("Watcher failed to close fsnotify instance: %v", err)
+		}
 	}
 }
 

@@ -22,7 +22,7 @@ type mcpEndpointInfo struct {
 // opts.MCP.Port and incrementing by 1 for each additional service — mirroring
 // how gRPC registers multiple services on the same server but keeping MCP
 // services on separate listeners.
-func (s *HybridServer) startMCPServer() error {
+func (s *HybridServer) startMCPServer() {
 	shared.Pulse.Logger.Debugf("MCP: starting %d service(s), base port %d, transport %q",
 		len(s.mcpServiceFuncs), s.opts.MCP.Port, s.opts.MCP.Transport)
 
@@ -63,8 +63,6 @@ func (s *HybridServer) startMCPServer() error {
 		}
 	}
 	shared.Pulse.Logger.Debugf("MCP: all services started (%d endpoint(s) resolved)", len(s.mcpEndpoints))
-
-	return nil
 }
 
 // buildMCPConfigForPort constructs an MCPServerConfig bound to the given port.

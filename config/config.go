@@ -213,6 +213,5 @@ func (s *Config) LoadDefaults(defaults any) error {
 
 func (s *Config) Close() error {
 	shared.Pulse.Logger.Info("Closing Config session and releasing resources")
-	shared.Close()
-	return nil
+	return shared.Close()
 }

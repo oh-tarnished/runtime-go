@@ -65,15 +65,19 @@ func (c *Compression) CreateTarGz(destinationPath string, sourceFiles []string) 
 	}
 
 	// It's crucial to close the writers in order to flush all data.
-	tarWriter.Close()
-	gzipWriter.Close()
+	if err := tarWriter.Close(); err != nil {
+		return err
+	}
+	if err := gzipWriter.Close(); err != nil {
+		return err
+	}
 
 	// Write the final archive from the buffer to the destination file.
 	return c.io.WriteFile(destinationPath, buf.Bytes())
 }
 
 // ExtractTarGz extracts a gzipped tar archive to the specified destination directory.
-func (c *Compression) ExtractTarGz(archivePath string, dest string, strip int) error {
+func (c *Compression) ExtractTarGz(archivePath string, dest string, strip int) (retErr error) {
 	shared.Pulse.Logger.Infof("Extracting archive '%s' to '%s'", archivePath, dest)
 	if err := c.io.CreateDirectory(dest); err != nil {
 		return err
@@ -90,7 +94,11 @@ func (c *Compression) ExtractTarGz(archivePath string, dest string, strip int) e
 	if err != nil {
 		return err
 	}
-	defer gzipReader.Close()
+	defer func() {
+		if cerr := gzipReader.Close(); cerr != nil && retErr == nil {
+			retErr = cerr
+		}
+	}()
 
 	tarReader := tar.NewReader(gzipReader)
 

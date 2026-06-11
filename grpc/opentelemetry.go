@@ -16,7 +16,7 @@ import (
 
 func setupOtelExporter() []grpc.ServerOption {
 	ctx := context.Background()
-	var serverOpts []grpc.ServerOption
+	serverOpts := make([]grpc.ServerOption, 0, 2)
 
 	endpoint := getFromEnvOrDefault("PULSE_TELEMETRY_OTLP_ENDPOINT", "localhost:12005")
 	shared.Pulse.Logger.Debugf("setupOtelExporter: creating OTLP metric exporter → %s (insecure)", endpoint)

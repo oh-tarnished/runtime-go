@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/oh-tarnished/runtime-go/grpc/shared"
@@ -48,8 +49,9 @@ func (s *HybridServer) startHTTPGateway() error {
 	if s.cert != nil {
 		shared.Pulse.Logger.Debugf("HTTP/1.1: starting HTTPS server on %s (TLS 1.3)", httpAddr)
 		s.httpServer = &http.Server{
-			Addr:    httpAddr,
-			Handler: s.mux,
+			Addr:              httpAddr,
+			Handler:           s.mux,
+			ReadHeaderTimeout: 30 * time.Second,
 			TLSConfig: &tls.Config{
 				Certificates: []tls.Certificate{*s.cert},
 				MinVersion:   tls.VersionTLS13,
@@ -63,8 +65,9 @@ func (s *HybridServer) startHTTPGateway() error {
 	} else {
 		shared.Pulse.Logger.Debugf("HTTP/1.1: starting HTTP server on %s (plaintext)", httpAddr)
 		s.httpServer = &http.Server{
-			Addr:    httpAddr,
-			Handler: s.mux,
+			Addr:              httpAddr,
+			Handler:           s.mux,
+			ReadHeaderTimeout: 30 * time.Second,
 		}
 		go func() {
 			if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -74,13 +77,15 @@ func (s *HybridServer) startHTTPGateway() error {
 	}
 
 	shared.Pulse.Logger.Debugf("HTTP/1.1: registering GET /health endpoint")
-	s.registerHealthzHandler(s.mux)
+	if err := s.registerHealthzHandler(s.mux); err != nil {
+		return fmt.Errorf("failed to register /health endpoint: %w", err)
+	}
 	return nil
 }
 
 // registerHealthzHandler adds GET /health to the grpc-gateway mux. It always
-// returns 200 with a small JSON payload and a randomised friendly message.
-func (s *HybridServer) registerHealthzHandler(gw *runtime.ServeMux) {
+// returns 200 with a small JSON payload and a randomized friendly message.
+func (s *HybridServer) registerHealthzHandler(gw *runtime.ServeMux) error {
 	messages := []string{
 		"I'm doing fine, bro. Don't worry. 🌱",
 		"Still alive and kicking. 🚀",
@@ -89,7 +94,7 @@ func (s *HybridServer) registerHealthzHandler(gw *runtime.ServeMux) {
 		"Feeling great, thanks for asking. 😎",
 	}
 
-	gw.HandlePath("GET", "/health",
+	return gw.HandlePath("GET", "/health",
 		func(w http.ResponseWriter, r *http.Request, _ map[string]string) {
 			shared.Pulse.Logger.Debugf("HTTP/1.1: GET /health from %s", r.RemoteAddr)
 			w.Header().Set("Content-Type", "application/json")

@@ -16,9 +16,9 @@ import (
 // This server listens on all network interfaces on the configured HTTP port + 1.
 // A valid TLS certificate must be provided, as HTTP/3 requires TLS 1.3.
 // The server is launched in a separate goroutine.
-func (s *HybridServer) startHTTP3ExperimentalServer() error {
+func (s *HybridServer) startHTTP3ExperimentalServer() {
 	addr := fmt.Sprintf(":%d", s.opts.HTTP.Port+1)
-	shared.Pulse.Logger.Debugf("HTTP/3: initialising experimental QUIC server on %s", addr)
+	shared.Pulse.Logger.Debugf("HTTP/3: initializing experimental QUIC server on %s", addr)
 
 	tlsConf := &tls.Config{MinVersion: tls.VersionTLS13}
 	if s.cert != nil {
@@ -46,6 +46,4 @@ func (s *HybridServer) startHTTP3ExperimentalServer() error {
 			shared.Pulse.Logger.Errorf("HTTP/3 server failed: %v", err)
 		}
 	}()
-
-	return nil
 }

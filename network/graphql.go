@@ -369,12 +369,12 @@ func StructToMap(input interface{}) (map[string]interface{}, error) {
 // BuildGraphQLArgs formats a map of variables as a GraphQL arguments string
 // (e.g. "id: \"1\", name: \"foo\"") for use in inline mutation/query strings.
 func BuildGraphQLArgs(variables map[string]interface{}) string {
-	var args []string
+	args := make([]string, 0, len(variables))
 	for key, value := range variables {
 		var argValue string
 		switch v := value.(type) {
 		case string:
-			argValue = fmt.Sprintf("%s: \"%s\"", key, v)
+			argValue = fmt.Sprintf("%s: %q", key, v)
 		case int, int64, float64, bool:
 			argValue = fmt.Sprintf("%s: %v", key, v)
 		default:

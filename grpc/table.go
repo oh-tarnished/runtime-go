@@ -18,14 +18,14 @@ import (
 	"github.com/oh-tarnished/runtime-go/grpc/shared"
 )
 
-// section colour palette — each protocol layer gets its own tint.
+// section color palette — each protocol layer gets its own tint.
 var (
 	colorGRPC = color.New(color.FgCyan, color.Bold).SprintFunc()
 	colorMCP  = color.New(color.FgYellow, color.Bold).SprintFunc()
 	colorHTTP = color.New(color.FgGreen, color.Bold).SprintFunc()
 )
 
-// sectionColor returns the colour function for a given section label.
+// sectionColor returns the color function for a given section label.
 func sectionColor(section string) func(...interface{}) string {
 	switch {
 	case strings.HasPrefix(section, "gRPC"):
@@ -56,7 +56,7 @@ func buildHash() string {
 	return "dev"
 }
 
-// envColor returns a coloured environment label.
+// envColor returns a colored environment label.
 func envColor(env options.ServerEnvironment) string {
 	switch env {
 	case options.Production:
@@ -71,7 +71,7 @@ func envColor(env options.ServerEnvironment) string {
 }
 
 // printStartupBanner prints the ASCII-art service name, a build info line,
-// and a colour-coded startup summary table. Warnings follow the table so they
+// and a color-coded startup summary table. Warnings follow the table so they
 // always appear below the visual summary.
 func (s *HybridServer) printStartupBanner(mcpEndpoints []mcpEndpointInfo) {
 	magenta := color.New(color.FgMagenta, color.Bold).SprintFunc()
@@ -168,8 +168,8 @@ func (s *HybridServer) printStartupBanner(mcpEndpoints []mcpEndpointInfo) {
 		}),
 	)
 	t.Header([]string{"Section", "Component", "Address", "Detail"})
-	t.Bulk(data)
-	t.Render()
+	_ = t.Bulk(data)
+	_ = t.Render()
 	fmt.Println()
 
 	if s.cert == nil {
