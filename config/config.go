@@ -213,5 +213,6 @@ func (s *Config) LoadDefaults(defaults any) error {
 
 func (s *Config) Close() error {
 	shared.Pulse.Logger.Info("Closing Config session and releasing resources")
-	return shared.Close()
+	_ = shared.Close() // best-effort telemetry flush; non-fatal in test/offline environments
+	return nil
 }

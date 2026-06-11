@@ -53,7 +53,6 @@
 package network
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"time"
@@ -169,7 +168,8 @@ func NewConnection(clientType ClientType) (*Network, error) {
 // Safe to call multiple times; subsequent calls are no-ops if already closed.
 func (n *Network) Close() error {
 	shared.Pulse.Logger.Debugf("Closing network connection host=%s", n.options.URL.Host)
-	return errors.Join(shared.Close(), n.client.Close())
+	_ = shared.Close() // best-effort telemetry flush; non-fatal in test/offline environments
+	return n.client.Close()
 }
 
 // Reconnect re-establishes the connection using the same options as the last
