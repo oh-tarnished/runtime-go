@@ -1,8 +1,9 @@
 go 1.26.0
 
 use (
-	./grpc
+	./config
 	./gorm
+	./grpc
 	./network
 	./resourcename
 	./ulid

@@ -1,0 +1,10 @@
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+database:
+  user: "yaml_default"
+features:
+  cache_enabled: true
+log:
+  level: "info"
