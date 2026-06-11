@@ -26,12 +26,13 @@ type Config struct {
 
 func main() {
 	// 1. Initialize a single config session.
-	s, err := config.New(config.ConfigIO{
-		BasePath:   "./sample",
-		YamlParser: config.KoanfYamlParser,
-		JsonParser: config.KoanfJsonParser,
-		TomlParser: config.KoanfTomlParser,
-	}, "MYAPP")
+	s, err := config.New(config.Options{
+		BasePath:    "./sample",
+		ServiceName: "MYAPP",
+		YamlParser:  config.KoanfYamlParser,
+		JsonParser:  config.KoanfJsonParser,
+		TomlParser:  config.KoanfTomlParser,
+	})
 	if err != nil {
 		log.Fatalf("Failed to create session: %v", err)
 	}

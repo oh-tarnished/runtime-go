@@ -16,56 +16,75 @@ import (
 	"github.com/oh-tarnished/runtime-go/config/shared"
 )
 
-// Config holds all the necessary settings for initializing a new Config session.
-type ConfigIO struct {
-	// BasePath is the root directory for all relative file operations (read, write, etc.).
+// Options configures a new Config session. Pass it to New.
+type Options struct {
+	// BasePath is the root directory for all relative file operations.
+	// Tilde (~) expansion is supported. Defaults to the current directory.
 	BasePath string
-	// WatcherPath is an optional path to create a default, embedded watcher for.
-	// If this is set, a watcher will be available at `session.Watcher`.
+	// ServiceName is used as the env-variable prefix fallback in LoadEnv when
+	// no explicit prefix is provided (e.g. "MYAPP" → looks for "MYAPP_*").
+	ServiceName string
+	// WatcherPath, when non-empty, creates an embedded file watcher at this
+	// path. The watcher is accessible at Config.Watcher after New returns.
 	WatcherPath string
-	// YamlParser selects the engine to use for YAML file operations.
+	// YamlParser selects the engine for YAML file operations.
+	// Defaults to DefaultYamlParser (yaml.v3) when unset.
 	YamlParser YamlParser
-	// JsonParser selects the engine to use for JSON file operations.
+	// JsonParser selects the engine for JSON file operations.
+	// Defaults to DefaultJsonParser (encoding/json) when unset.
 	JsonParser JsonParser
-	// TomlParser selects the engine to use for TOML file operations.
+	// TomlParser selects the engine for TOML file operations.
+	// Defaults to DefaultTomlParser (BurntSushi/toml) when unset.
 	TomlParser TomlParser
 }
 
-// Config is the primary session object for all library operations.
-// It holds the state and provides access to all sub-modules like IO, Yaml, and Watcher.
+// ConfigIO is an alias for Options retained for source compatibility.
+//
+// Deprecated: use Options.
+type ConfigIO = Options
+
+// Config is the primary session object returned by New.
+// Access sub-modules (IO, Yaml, Json, Toml, Compression) as fields; call the
+// receiver methods (LoadEnv, LoadDefaults, String, Int, Bool) for merged-state
+// lookups. Call Close when the session is no longer needed.
 type Config struct {
-	// IO provides thread-safe methods for basic file system operations.
+	// IO provides thread-safe file system operations (read, write, list, mkdir).
 	IO *IO
-	// Yaml provides methods for handling YAML files.
+	// Yaml provides YAML read/write and optional Koanf-state loading.
 	Yaml *Yaml
-	// Json provides methods for handling JSON files.
+	// Json provides JSON read/write and optional Koanf-state loading.
 	Json *Json
-	// Toml provides methods for handling TOML files.
+	// Toml provides TOML read/write and optional Koanf-state loading.
 	Toml *Toml
-	// Watcher is the default, embedded file watcher. It is only initialized if
-	// a WatcherPath is provided in the initial Config.
+	// Watcher is an embedded file-change watcher, available only when
+	// Options.WatcherPath was non-empty at construction time.
 	Watcher *Watcher
-	// Compression provides methods for compressing and decompressing data.
+	// Compression provides gzipped-tar create/extract operations.
 	Compression *Compression
-	// koanf is the internal instance used for stateful configuration management.
-	koanf *koanf.Koanf
-	// ServiceName is the name of the service.
+	// ServiceName is the service identifier set via Options.ServiceName.
+	// Used as the env-variable prefix fallback in LoadEnv.
 	ServiceName string
+
+	koanf *koanf.Koanf
 }
 
-// New creates and initializes a new Config session based on the provided configuration.
-func New(config ConfigIO, serviceName ...string) (*Config, error) {
-	shared.Pulse.Logger.Debugf("New Config session requested with BasePath: '%s'", config.BasePath)
-	io, err := newIO(config.BasePath)
+// New creates and initializes a new Config session from the provided options.
+//
+// The session's IO, Yaml, Json, Toml, and Compression sub-modules are always
+// initialized. The embedded Watcher is only created when opts.WatcherPath is
+// non-empty. Call Close when the session is no longer needed.
+func New(opts Options) (*Config, error) {
+	shared.Pulse.Logger.Debugf("New Config session requested with BasePath: '%s'", opts.BasePath)
+	io, err := newIO(opts.BasePath)
 	if err != nil {
 		shared.Pulse.Logger.Errorf("Failed to initialize IO module: %v", err)
 		return nil, err
 	}
 
 	var watcher *Watcher
-	if config.WatcherPath != "" {
-		shared.Pulse.Logger.Debugf("WatcherPath provided, creating embedded watcher for: '%s'", config.WatcherPath)
-		watcher, err = newWatcher(config.WatcherPath, nil)
+	if opts.WatcherPath != "" {
+		shared.Pulse.Logger.Debugf("WatcherPath provided, creating embedded watcher for: '%s'", opts.WatcherPath)
+		watcher, err = newWatcher(opts.WatcherPath, nil)
 		if err != nil {
 			shared.Pulse.Logger.Errorf("Failed to create default watcher: %v", err)
 			return nil, err
@@ -73,25 +92,17 @@ func New(config ConfigIO, serviceName ...string) (*Config, error) {
 	}
 
 	k := koanf.New(".")
-	yaml := newYaml(io, config.YamlParser, k)
-	json := newJson(io, config.JsonParser, k)
-	toml := newToml(io, config.TomlParser, k)
-
-	var serviceNameStr string
-	if len(serviceName) > 0 {
-		serviceNameStr = serviceName[0]
-	}
 	s := &Config{
 		IO:          io,
-		Yaml:        yaml,
-		Json:        json,
-		Toml:        toml,
+		Yaml:        newYaml(io, opts.YamlParser, k),
+		Json:        newJson(io, opts.JsonParser, k),
+		Toml:        newToml(io, opts.TomlParser, k),
 		Watcher:     watcher,
 		Compression: newCompression(io),
 		koanf:       k,
-		ServiceName: serviceNameStr,
+		ServiceName: opts.ServiceName,
 	}
-	shared.Pulse.Logger.Infof("New Config session created successfully for BasePath: '%s'", config.BasePath)
+	shared.Pulse.Logger.Infof("New Config session created successfully for BasePath: '%s'", opts.BasePath)
 	return s, nil
 }
 

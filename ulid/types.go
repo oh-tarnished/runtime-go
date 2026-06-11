@@ -40,19 +40,9 @@ func (id ID) TimeCode() string {
 	return id.value.String()[:10]
 }
 
-// GetTimeCode returns TimeCode and exists for backward compatibility.
-func (id ID) GetTimeCode() string {
-	return id.TimeCode()
-}
-
 // RandomCode returns the 80-bit random portion of the ULID.
 func (id ID) RandomCode() string {
 	return id.value.String()[10:]
-}
-
-// GetRandomCode returns RandomCode and exists for backward compatibility.
-func (id ID) GetRandomCode() string {
-	return id.RandomCode()
 }
 
 // MarshalText implements encoding.TextMarshaler.

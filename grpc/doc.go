@@ -1,69 +1,56 @@
-/*
-Package grpc provides a HybridServer for creating servers that serve both gRPC
-and a JSON/HTTP gateway. It wraps common functionality like TLS configuration,
-service registration, and graceful shutdown to reduce boilerplate code.
-
-# Overview
-
-The main component in this package is the HybridServer. It's configured using a
-functional options pattern. You create a server with base options, then apply
-additional configuration using `With...` functions.
-
-The server supports:
-  - gRPC, HTTP/1.1, and experimental HTTP/3 protocols.
-  - Automatic TLS configuration from certificate files.
-  - Graceful shutdown on SIGINT and SIGTERM signals.
-  - Standard gRPC Health Checking and Server Reflection services.
-
-Configuration can also be overridden by environment variables, which is useful
-for deploying in different environments.
-
-# Usage
-
-The following example shows how to set up a complete HybridServer. It assumes
-you have a `greeter.proto` file that has been compiled with both
-`protoc-gen-go-grpc` and `protoc-gen-grpc-gateway`.
-
-### 1. Implement Your Service and Registrars
-
-First, implement your gRPC service's logic. Then, create registrar functions
-that this package can use to add your service to the server.
-
-```go
-// service/greeter.go
-package service
-
-import (
-
-	"context"
-	"your/project/pb" // Assumes compiled protobufs are in this path.
-
-	"[github.com/oh-tarnished/runtime-go/grpc](https://github.com/oh-tarnished/runtime-go/grpc)"
-
-)
-
-// server implements the Greeter service.
-
-	type server struct {
-		pb.UnimplementedGreeterServer
-	}
-
-// SayHello is the implementation of the RPC.
-
-	func (s *server) SayHello(ctx context.Context, req *pb.HelloRequest) (*pb.HelloReply, error) {
-		return &pb.HelloReply{Message: "Hello, " + req.GetName()}, nil
-	}
-
-// RegisterGRPCService registers the gRPC service with the server.
-
-	func RegisterGRPCService(s *grpc.GRPCServer) {
-		pb.RegisterGreeterServer(s, &server{})
-	}
-
-// RegisterHTTPGateway registers the HTTP gateway handler for the Greeter service.
-
-	func RegisterHTTPGateway(mux *grpc.ServeMux, endpoint string, opts []grpc.DialOption) error {
-		return pb.RegisterGreeterHandlerFromEndpoint(context.Background(), mux, endpoint, opts)
-	}
-*/
+// Package grpc provides HybridServer — a single server that simultaneously
+// speaks gRPC, HTTP/1.1 JSON gateway (via grpc-gateway), optional HTTP/3
+// (QUIC), and an MCP (Model Context Protocol) endpoint, all sharing the same
+// port and TLS configuration.
+//
+// # Overview
+//
+// Create a server with [NewHybridServer], register gRPC and HTTP gateway
+// handlers, then call [HybridServer.Start]. The server blocks until a SIGINT
+// or SIGTERM signal is received, then drains connections and exits cleanly:
+//
+//	srv := grpc.NewHybridServer(options.Options{
+//	    ServiceName: "my-service",
+//	    Environment: options.Production,
+//	    GRPC:        options.Endpoint{Host: "0.0.0.0", Port: 50051},
+//	    HTTP:        options.Endpoint{Host: "0.0.0.0", Port: 8080},
+//	})
+//
+//	srv.RegisterGRPC(func(s *grpc.Server) {
+//	    pb.RegisterGreeterServer(s, &myGreeter{})
+//	})
+//	srv.RegisterHTTP(func(mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error {
+//	    return pb.RegisterGreeterHandlerFromEndpoint(ctx, mux, endpoint, opts)
+//	})
+//
+//	srv.Start() // blocks until signal
+//
+// # TLS
+//
+// Pass [options.TLSOptions] via [options.Options.TLS] to load certificate/key
+// files. When TLS is configured, the gRPC and HTTP servers share the same
+// credentials. HTTP/3 is only started when TLS is present.
+//
+// # OpenTelemetry
+//
+// When [options.Options.OTel] is non-nil, the server registers gRPC
+// interceptors that emit trace spans and metrics for every RPC. The exporter
+// endpoint is configured through the OTel options; the server name in spans
+// comes from ServiceName.
+//
+// # Health checking and reflection
+//
+// The gRPC health service (grpc.health.v1) and server reflection are
+// registered automatically. A /healthz HTTP endpoint is also added on the
+// HTTP mux.
+//
+// # MCP (Model Context Protocol)
+//
+// Set [options.Options.MCP] to enable an HTTP-based MCP endpoint alongside
+// the gateway. This is experimental and subject to change.
+//
+// # HTTP/3 (QUIC) — experimental
+//
+// Set [options.Options.H3] to enable HTTP/3. Requires TLS. The Alt-Svc header
+// is injected into HTTP/1.1 responses so compliant clients can upgrade.
 package grpc

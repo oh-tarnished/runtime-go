@@ -86,9 +86,10 @@ err = resourcename.UnmarshalResource("//api.example.com/users/u42", &u)
 ```go
 import "github.com/oh-tarnished/runtime-go/config"
 
-cfg, err := config.New(config.ConfigIO{
+cfg, err := config.New(config.Options{
     BasePath:    "./config",
-    YamlParser:  config.GoYaml,
+    ServiceName: "MYAPP",
+    YamlParser:  config.KoanfYamlParser,
 })
 
 cfg.LoadDefaults(myDefaults)
@@ -103,8 +104,7 @@ port := cfg.Int("server.port")
 ```go
 import "github.com/oh-tarnished/runtime-go/network"
 
-conn, err := network.NewConnection(network.HTTPConnClient)
-conn, err = conn.WithOpts(network.ConnectionOptions{
+conn, err := network.Connect(network.HTTPConnClient, network.ConnectionOptions{
     URL: network.URLOptions{
         Scheme: network.HTTPS,
         Host:   "api.example.com",
@@ -115,7 +115,11 @@ conn, err = conn.WithOpts(network.ConnectionOptions{
 })
 
 client, _ := conn.AsHTTPConnectionType()
-data, err := client.RequestSync(ctx, network.GET, conn.Options().URL, nil, nil, 0, 0)
+data, err := client.RequestSync(ctx, network.GET, network.URLOptions{
+    Scheme: network.HTTPS,
+    Host:   "api.example.com",
+    Paths:  []string{"/v1/resource"},
+}, nil, nil, 0, 0)
 ```
 
 ### grpc

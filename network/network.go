@@ -139,6 +139,27 @@ type Network struct {
 	options ConnectionOptions
 }
 
+// Connect creates a client of the given type, applies opts, and establishes the
+// connection in a single call. It is equivalent to calling NewConnection followed
+// by WithOpts, and is the preferred entry point for most callers:
+//
+//	conn, err := network.Connect(network.HTTPConnClient, network.ConnectionOptions{
+//	    URL: network.URLOptions{
+//	        Scheme: network.HTTPS,
+//	        Host:   "api.example.com",
+//	        Paths:  []string{"/v1"},
+//	    },
+//	    Timeout: 10 * time.Second,
+//	    SkipConnectivityCheck: true,
+//	})
+func Connect(clientType ClientType, opts ConnectionOptions) (*Network, error) {
+	n, err := NewConnection(clientType)
+	if err != nil {
+		return nil, err
+	}
+	return n.WithOpts(opts)
+}
+
 // NewConnection creates a new network client of the given type. The client is not
 // connected until WithOpts (or the underlying client's Connect) is called.
 // Returns an error if clientType is not one of GraphQLConnClient, HTTPConnClient,
