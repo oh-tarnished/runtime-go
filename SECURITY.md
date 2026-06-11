@@ -17,7 +17,10 @@ Only the latest release of each module receives security fixes.
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-Email **srikanthkandarp23@gmail.com** with the subject line `[SECURITY] runtime-go — <brief description>`.
+Use GitHub's private vulnerability reporting:
+**[Report a vulnerability →](https://github.com/oh-tarnished/runtime-go/security/advisories/new)**
+
+This creates a private advisory visible only to you and the maintainers — nothing is public until a fix is released.
 
 Include:
 - The module and version affected
@@ -25,7 +28,7 @@ Include:
 - Steps to reproduce or a minimal proof-of-concept (if available)
 - Any suggested mitigations
 
-You will receive an acknowledgement within **72 hours**. If you do not hear back, follow up via a GitHub issue marked `[security]` without including exploit details.
+You will receive an acknowledgement within **72 hours**.
 
 ## Disclosure Timeline
 
