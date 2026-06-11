@@ -1,9 +1,7 @@
 # runtime-go
 
 [![CI](https://github.com/oh-tarnished/runtime-go/actions/workflows/ci.yml/badge.svg)](https://github.com/oh-tarnished/runtime-go/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/oh-tarnished/runtime-go.svg)](https://pkg.go.dev/github.com/oh-tarnished/runtime-go)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Go Report Card](https://goreportcard.com/badge/github.com/oh-tarnished/runtime-go)](https://goreportcard.com/report/github.com/oh-tarnished/runtime-go)
 
 A battle-tested Go utility belt for building production-grade services. Each module is an independent Go module — import only what you need.
 
