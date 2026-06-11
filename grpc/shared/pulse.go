@@ -15,8 +15,8 @@ var (
 func init() {
 	once.Do(func() {
 		p, err := pulse.New().
-			WithService("runtime-go-network", "1.0.0").
-			WithLogLevel(pulse.ModuleLevel_2).
+			WithService("runtime-go-grpc", "1.0.0").
+			WithLogLevel(pulse.ModuleLevel_2).WithTracing().
 			Build()
 		if err != nil {
 			fmt.Printf("ERROR: Failed to create Pulse: %v\n", err)
