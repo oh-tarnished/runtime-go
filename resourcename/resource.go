@@ -50,16 +50,16 @@ func requireStructPointer(v interface{}) (reflect.Value, error) {
 //
 // The lookup order is intentionally simple: first a ResourceTemplate method,
 // then a struct tag that looks like a template string.
-func findTemplateString(rv reflect.Value) (string, error) {
+func findTemplateString(rv reflect.Value) string {
 	if template, ok := templateFromMethod(rv); ok && template != "" {
-		return template, nil
+		return template
 	}
 
 	if template, ok := templateFromTag(rv.Type()); ok {
-		return template, nil
+		return template
 	}
 
-	return "", nil
+	return ""
 }
 
 // templateFromMethod checks both value and pointer receivers for a

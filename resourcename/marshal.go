@@ -27,10 +27,7 @@ func MarshalResource(v interface{}) (string, error) {
 		return "", fmt.Errorf("MarshalResource: %w", err)
 	}
 
-	template, err := findTemplateString(structValue)
-	if err != nil {
-		return "", err
-	}
+	template := findTemplateString(structValue)
 	if template == "" {
 		return "", fmt.Errorf("no resource template found on type %s", structValue.Type())
 	}

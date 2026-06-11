@@ -112,7 +112,7 @@ func TestParseAndMarshalRoundTrip(t *testing.T) {
 		t.Fatalf("MarshalText failed: %v", err)
 	}
 	var textRoundTrip ID
-	if err := textRoundTrip.UnmarshalText(data); err != nil {
+	if err = textRoundTrip.UnmarshalText(data); err != nil {
 		t.Fatalf("UnmarshalText failed: %v", err)
 	}
 	if textRoundTrip.String() != original.String() {
